@@ -3,9 +3,11 @@ import asyncio
 import setproctitle
 from collections import defaultdict, deque
 import socket
-
+import resource
 
 class Stats:
+    rusage_denom = 1024.
+
     hostname = socket.gethostbyname(socket.gethostname())
     service_name = '_'.join(setproctitle.getproctitle().split('_')[1:-1])
     http_stats = {'total_requests': 0, 'total_responses': 0, 'timedout': 0, 'total_errors': 0}
@@ -16,6 +18,7 @@ class Stats:
         logd = defaultdict(lambda: 0)
         logd['hostname'] = cls.hostname
         logd['service_name'] = cls.service_name
+        logd['mem_usage'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / cls.rusage_denom
 
         for key, value in cls.http_stats.items():
             logd[key] += value
